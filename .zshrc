@@ -1,9 +1,12 @@
-[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx
-
+#DWM Blocks status bar
+PATH="$PATH:/$HOME/.local/bin"	
+PATH="$PATH:/$HOME/.local/bin/i3cmds"
+PATH="$PATH:/$HOME/.local/bin/statusbar"
 
 # Path to your oh-my-zsh installation.
 # Reevaluate the prompt string each time it's displaying a prompt
-#setopt prompt_subst
+setopt prompt_subst
+zstyle ':completion:*' menu select
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit
@@ -24,7 +27,16 @@ bindkey '^L' vi-forward-word           # Move forward by one word in vi mode
 bindkey '^k' up-line-or-search         # Search up in history
 bindkey '^j' down-line-or-search       # Search down in history
 
+bindkey "^a" beginning-of-line
+bindkey "^e" end-of-line
 
+# ctrl J & K for going up and down in prev commands
+bindkey "^J" history-search-forward
+bindkey "^K" history-search-backward
+bindkey '^R' fzf-history-widget
+
+# fzf setup
+source <(fzf --zsh) # allow for fzf history widget
 
 # You may need to manually set your language environment
 export LANG=en_US.UTF-8
@@ -40,6 +52,14 @@ setopt hist_ignore_all_dups       # Remove all duplicate commands from the histo
 setopt hist_ignore_dups           # Ignore consecutive duplicates
 setopt hist_ignore_space          # Ignore commands that start with a space
 setopt hist_verify                # Verify history commands before executing
+
+# Only save successful commands
+function zshaddhistory() {
+    emulate -L zsh
+    [[ $1 != '' && $? -eq 0 ]]  # Only save non-empty, successful commands
+}
+
+
 
 # Command behavior and convenience
 setopt autocd                     # Automatically change directories when typing a path
@@ -222,13 +242,106 @@ fcd() { cd "$(find . -type d -not -path '*/.*' | fzf)" && l; }
 fv() { nvim "$(find . -type f -not -path '*/.*' | fzf)" }
 
 
-
+# --- zoxide (better cd)
 eval "$(zoxide init zsh)"
 
+#yazi command
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
+# ---- FZF -----
+
+# Set up fzf key bindings and fuzzy completion
+eval "$(fzf --zsh)"
+
+# --- setup fzf theme ---
+fg="#CBE0F0"
+bg="#011628"
+bg_highlight="#143652"
+purple="#B388FF"
+blue="#06BCE4"
+cyan="#2CF9ED"
+
+export FZF_DEFAULT_OPTS="--color=fg:${fg},bg:${bg},hl:${purple},fg+:${fg},bg+:${bg_highlight},hl+:${purple},info:${blue},prompt:${cyan},pointer:${cyan},marker:${cyan},spinner:${cyan},header:${cyan}"
+
+# -- Use fd instead of fzf --
+
+export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
+
+# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
+# - The first argument to the function ($1) is the base path to start traversal
+# - See the source code (completion.{bash,zsh}) for the details.
+_fzf_compgen_path() {
+  fd --hidden --exclude .git . "$1"
+}
+
+# Use fd to generate the list for directory completion
+_fzf_compgen_dir() {
+  fd --type=d --hidden --exclude .git . "$1"
+}
+
+source ~/fzf-git.sh/fzf-git.sh
+
+show_file_or_dir_preview="if [ -d {} ]; then eza --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi"
+
+export FZF_CTRL_T_OPTS="--preview '$show_file_or_dir_preview'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
+
+# Advanced customization of fzf options via _fzf_comprun function
+# - The first argument to the function is the name of the command.
+# - You should make sure to pass the rest of the arguments to fzf.
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd)           fzf --preview 'eza --tree --color=always {} | head -200' "$@" ;;
+    export|unset) fzf --preview "eval 'echo \${}'"         "$@" ;;
+    ssh)          fzf --preview 'dig {}'                   "$@" ;;
+    *)            fzf --preview "$show_file_or_dir_preview" "$@" ;;
+  esac
+}
+
+# ----- Bat (better cat) -----
+
+#export BAT_THEME=tokyonight_night
+
+
+# ---- TheFuck -----
+
+# thefuck alias
+eval $(thefuck --alias)
+eval $(thefuck --alias fk)
+
+# ---- Zoxide (better cd) ----
+eval "$(zoxide init zsh)"
+
+alias cd="z"
+
+
+export EDITOR="nvim"
+export TERMINAL="wezterm"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 
+
+#the fuck alias
+eval $(thefuck --alias)
+eval $(thefuck --alias fk)
+
 # switch between shells
 alias tobash="sudo chsh $USER -s /bin/bash && echo 'Now log out.'"
 alias tozsh="sudo chsh $USER -s /bin/zsh && echo 'Now log out.'"
+neofetch | lolcat
+
+export YAZI_CONFIG_HOME="$HOME/.config/yazi"
+export YAZI_CONFIG=~/.config/yazi/config.yaml

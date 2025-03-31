@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Get volume and mute status
+vol="$(pamixer --get-volume)"           # Current volume level
+mute_status="$(pamixer --get-mute)"     # Check mute status
+
+# Check if mute status is true
+if [ "$mute_status" = "true" ]; then
+    printf "🔇 Muted\n"
+    exit
+fi
+
+# Validate that $vol is a numeric value
+if ! [ "$vol" -eq "$vol" ] 2>/dev/null; then
+    printf "Error: Invalid volume value\n"
+    exit
+fi
+
+# Determine icon based on volume level
+if [ "$vol" -gt 70 ]; then
+    icon="🔊"  # High volume
+elif [ "$vol" -lt 30 ]; then
+    icon="🔈"  # Low volume
+else
+    icon="🔉"  # Medium volume
+fi
+
+# Display the volume icon and level
+printf "%s %s%%\n" "$icon" "$vol"
+

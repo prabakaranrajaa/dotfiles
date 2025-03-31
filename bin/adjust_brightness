@@ -1,0 +1,27 @@
+#!/bin/bash
+
+DISPLAY="LVDS-1" # Replace with your display name
+STEP=0.1         # Change in brightness per key press
+
+# Get current brightness
+current_brightness=$(xrandr --verbose | grep "$DISPLAY" -A 5 | grep Brightness | awk '{print $2}')
+
+# Adjust brightness
+if [ "$1" == "up" ]; then
+    new_brightness=$(echo "$current_brightness + $STEP" | bc)
+    if (( $(echo "$new_brightness > 1.0" | bc -l) )); then
+        new_brightness=1.0 # Cap brightness at 1.0
+    fi
+elif [ "$1" == "down" ]; then
+    new_brightness=$(echo "$current_brightness - $STEP" | bc)
+    if (( $(echo "$new_brightness < 0.1" | bc -l) )); then
+        new_brightness=0.1 # Prevent brightness from going below 0.1
+    fi
+else
+    echo "Invalid argument. Use 'up' or 'down'."
+    exit 1
+fi
+
+# Set new brightness
+xrandr --output "$DISPLAY" --brightness "$new_brightness"
+

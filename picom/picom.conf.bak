@@ -1,0 +1,47 @@
+opacity-rule = [
+    "80:class_g = 'WezTerm'",
+    "70:class_g = 'st'",
+    "100:class_g = 'vlc'",
+];
+
+
+# Enable fading effects
+fading = true;
+fade-in-step = 0.5;    # Speed of fade-in animation
+fade-out-step = 0.5;   # Speed of fade-out animation
+fade-delta = 10;        # Time between fade steps, in milliseconds
+
+# Specific fade settings
+no-fading-openclose = false;   # Apply fade animations when opening/closing windows
+
+# Set opacity for inactive windows (optional)
+inactive-opacity = 0.75;       # Opacity for inactive windows
+active-opacity = .95;          # Opacity for active windows
+frame-opacity = 1;           # Opacity for window frames
+
+# Enable shadows (optional, for aesthetics)
+shadow = true;
+shadow-radius = 10;
+shadow-offset-x = -10;
+shadow-offset-y = -10;
+shadow-opacity = 0.7;
+
+# ROUNDED CORNERS
+corner-radius = 16;
+
+# BLURRING
+# methods: none, gaussian, box, kernel (define custom kernel), dual_kawase
+#blur-method = "kawase";
+blur-method = "box";
+blur-strength = 5;
+
+# Backend for rendering (use "glx" for GPU acceleration if available)
+backend = "xrender";
+
+# Exclude specific windows from animations (adjust as needed)
+wintypes:
+{
+    dock = { shadow = false; };
+    dnd = { shadow = false; };
+    tooltip = { shadow = false; fade = false; opacity = 0.85; };
+};

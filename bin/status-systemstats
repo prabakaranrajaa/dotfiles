@@ -1,0 +1,24 @@
+#!/bin/bash
+
+
+cuptemp=$(sensors | awk '/^Core 0/ {print $3}' | sed 's/+//;s/\..*$//')
+memuse=$(free -m | awk '/^Mem/ {print ($3)/1000}'| cut -c-4)
+#cupuse=$(iostat -c awk 'NR>=4 && NR <=4' | awk '{print "User CPU use: "$1"%\nSystem CPU use:",$3"%"}')
+cupuse=$(iostat -c | awk 'NR==4 {print "User CPU use: "$1"%\nSystem CPU use: "$3"%"}')
+
+#setats notification color
+if [[ $cuptemp -gt 75 ]]; then color="#bf616a"; elif [[ $cuptemp -gt 65 ]]; then color="#ebcb8b"; else color="#a3be8c"; fi
+
+
+#sendig to bar
+echo $cuptemp"°C" $memuse"G"
+
+#clicking on bar
+case $BLOCK_BUTTON in
+	1) setsid -w -f "$TERMINAL" -e htop ;;
+	6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac 
+
+
+
+

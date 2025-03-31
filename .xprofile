@@ -1,0 +1,11 @@
+# Restore wallpaper using Nitrogen
+nitrogen --restore &
+
+
+# Start Picom with the specified configuration
+picom --config ~/.config/picom/picom.conf &
+#picom --config ~/.config/picom/picom.conf -b &
+
+
+wezterm & 
+opera-beta &

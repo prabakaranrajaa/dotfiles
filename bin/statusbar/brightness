@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Define the brightness adjustment method (you can replace xbacklight with another method if needed)
+METHOD="xbacklight"
+
+# Handle button clicks
+if [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
+    # Left-click increases brightness by 5%
+    $METHOD -inc 5
+elif [[ "${BLOCK_BUTTON}" -eq 3 ]]; then
+    # Right-click decreases brightness by 5%
+    $METHOD -dec 5
+fi
+
+# Display the current brightness level
+BRIGHTNESS=$($METHOD -get | awk '{printf "%.0f", $1}')
+echo "☀️ $BRIGHTNESS%"
+
